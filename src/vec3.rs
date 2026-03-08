@@ -1,11 +1,13 @@
 use core::f64;
-use std::ops::{Add, AddAssign, Sub, SubAssign, Neg, Mul, MulAssign, Index, IndexMut};
+use std::ops::{Add, AddAssign, Sub, SubAssign, Neg, Mul, MulAssign, Index, IndexMut, Div};
 
 // TODO: template?
-#[derive(Debug)]
+#[derive(PartialEq, Debug, Copy, Clone)]
 pub struct Vec3 {
     e: [f64; 3]
 }
+
+pub type Point3 = Vec3;
 
 impl Vec3 {
     pub fn new() -> Self {
@@ -35,10 +37,7 @@ impl Vec3 {
     pub fn z(&self) ->f64 {
         self.e[2]
     }
-
-    // inline vec3 unit_vector(const vec3& v) {
-    //     return v / v.length();
-    // }
+    
     fn squared_length(&self) -> f64 {
         self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2] 
     }
@@ -46,11 +45,11 @@ impl Vec3 {
 
 }
 
-pub fn dot(u: &mut Vec3, v: &mut Vec3) -> f64 {
+pub fn dot(u: &Vec3, v: &Vec3) -> f64 {
     u.e[0] * v.e[0] + u.e[1] * v.e[1] + u.e[2] * v.e[2]
 }
 
-pub fn cross(u: &mut Vec3, v: &mut Vec3) -> Vec3 {
+pub fn cross(u: &Vec3, v: &Vec3) -> Vec3 {
     Vec3::from_value(u.e[1] * v.e[2] - u.e[2] * v.e[1],
                      u.e[2] * v.e[0] - u.e[0] * v.e[2],
                      u.e[0] * v.e[1] - u.e[1] * v.e[0])
@@ -111,6 +110,27 @@ impl Mul<f64> for Vec3 {
     }
 }
 
+impl Mul<f64> for &Vec3 {
+    type Output = Vec3;
+    fn mul(self, t: f64) -> Self::Output {
+        Vec3::from_array([self.e[0] * t, self.e[1] * t, self.e[2] * t])
+    }
+}
+
+impl Div<f64> for Vec3 {
+    type Output = Self;
+    fn div(self, t: f64) -> Self::Output {
+        self * (1.0/t) 
+    }
+}
+
+impl Div<f64> for &Vec3 {
+    type Output = Vec3;
+    fn div(self, t: f64) -> Self::Output {
+        self * (1.0/t) 
+    }
+}
+
 impl MulAssign<f64> for Vec3 {
     fn mul_assign(&mut self, t: f64) {
         self.e[0] *= t;
@@ -129,5 +149,32 @@ impl Index<usize> for Vec3 {
 impl IndexMut<usize> for Vec3 {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.e[index]
+    }
+}
+
+
+pub fn unit_vector(v: &Vec3) -> Vec3{
+    return v / v.length();
+}
+//-----------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_dot() {
+        let vec1 = Vec3::from_value(1.0, 2.0, 3.0);
+        let vec2 = Vec3::from_array([4.0, 5.0, 6.0]);
+        assert_eq!(dot(&vec1, &vec2), 32.0);
+
+    }
+
+    #[test]
+    fn test_add() {
+        let vec1 = Vec3::from_value(1.0, 2.0, 3.0);
+        let vec2 = Vec3::from_array([4.0, 5.0, 6.0]);
+        assert_eq!(vec1 + vec2, Vec3::from_array([5.0, 7.0, 9.0]));
+
     }
 }

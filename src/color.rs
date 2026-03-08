@@ -2,7 +2,9 @@ use crate::vec3;
 use std::io::{Write, stdout};
 use vec3::Vec3;
 
-pub fn write_color<W: Write>(writer: &mut W, color: &Vec3) -> std::io::Result<()> {
+pub type Color = Vec3;
+
+pub fn write_color<W: Write>(writer: &mut W, color: &Color) -> std::io::Result<()> {
     let r = color.x();
     let g = color.y();
     let b = color.z();
