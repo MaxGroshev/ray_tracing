@@ -1,8 +1,7 @@
-use core::f64;
 use std::ops::{Add, AddAssign, Sub, SubAssign, Neg, Mul, MulAssign, Index, IndexMut, Div};
 
 // TODO: template?
-#[derive(PartialEq, Debug, Copy, Clone)]
+#[derive(PartialEq, Debug, Copy, Clone, Default)]
 pub struct Vec3 {
     e: [f64; 3]
 }
@@ -38,7 +37,7 @@ impl Vec3 {
         self.e[2]
     }
     
-    fn squared_length(&self) -> f64 {
+    pub fn squared_length(&self) -> f64 {
         self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2] 
     }
 

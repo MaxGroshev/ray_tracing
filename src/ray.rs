@@ -17,7 +17,7 @@ impl Ray {
         Self { orig: orig_, dir: dir_ }
     }
 
-    pub fn original(&self) -> &Point3 { &self.orig }
+    pub fn original(&self) -> Point3 { self.orig } //TODO: &Point3???
 
     pub fn direction(&self) -> &Vec3 { &self.dir }
 
