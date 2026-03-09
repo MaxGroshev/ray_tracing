@@ -1,4 +1,4 @@
-use std::{io::{Write, stdout}, rc::Rc};
+use std::{io::{Write, stdout}, ops::Range, rc::Rc};
 
 mod vec3;
 use vec3::{Vec3, Point3, unit_vector};
@@ -16,7 +16,7 @@ use utils::utils::init_rt;
 
 fn ray_color(r: &Ray, world:&dyn Hitable) -> Color {
     let mut hit_rec = HitRecord::default(); 
-    if world.hit(r, 0.0, f64::INFINITY, &mut hit_rec) {
+    if world.hit(r, &(0.0..f64::INFINITY), &mut hit_rec) {
         return (hit_rec.normal + Color::from_value(1.0,1.0,1.0)) * 0.5;
     }
     let unit_direction = unit_vector(&r.direction());

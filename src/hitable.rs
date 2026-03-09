@@ -1,6 +1,5 @@
-use std::mem::Discriminant;
 use std::rc::Rc;
-
+use std::ops::{Range, RangeInclusive};
 use crate::vec3::{Point3, Vec3, dot};
 use crate::ray::{Ray};
 
@@ -27,7 +26,7 @@ impl HitRecord {
 //-----------------------------------------------------------------------------
 
 pub trait Hitable {
-    fn hit(&self, r:&Ray, ray_tmin:f64, ray_tmax:f64, rec:&mut HitRecord) -> bool; 
+    fn hit(&self, r:&Ray, interval:&Range<f64>, rec:&mut HitRecord) -> bool; 
     // TODO: Hmmm, no input rec seems useless?
 }
 
@@ -42,7 +41,7 @@ impl Sphere {
 
 }
 impl Hitable for Sphere {
-    fn hit(&self, r:&Ray, ray_tmin:f64, ray_tmax:f64, rec:&mut HitRecord) -> bool {
+    fn hit(&self, r:&Ray, interval:&Range<f64>, rec:&mut HitRecord) -> bool {
         let oc: Vec3 = self.center - r.original();
         let a = r.direction().squared_length();
         let h = dot(r.direction(), &oc);
@@ -54,9 +53,9 @@ impl Hitable for Sphere {
         }
         let sqrtd = f64::sqrt(discr);
         let mut root = (h - sqrtd) / a;
-        if root <= ray_tmin || root >= ray_tmax {
+        if !interval.contains(&root) {
             root = (h + sqrtd) / a;
-            if root <= ray_tmin || root >= ray_tmax {
+            if !interval.contains(&root) {
                 return false;
             }
         }
@@ -83,15 +82,15 @@ impl HitableList {
     pub fn clear(&mut self) { self.objects.clear(); }
 }
 impl Hitable for HitableList { // TODO: is there differnce between &mut and Box? 
-    fn hit(&self, r:&Ray, ray_tmin:f64, ray_tmax:f64, rec:&mut HitRecord) -> bool {
+    fn hit(&self, r:&Ray, interval:&Range<f64>, rec:&mut HitRecord) -> bool {
         let mut tmp_rec = HitRecord::default();
         let mut hit_smth: bool  = false;
-        let mut closest = ray_tmax;
+        let mut innner_interval = interval.clone(); // TODO: looks weird
 
         for object in &self.objects {
-            if object.hit(r, ray_tmin, closest, &mut tmp_rec) {
+            if object.hit(r, &innner_interval, &mut tmp_rec) {
                 hit_smth = true;
-                closest = tmp_rec.t;
+                innner_interval.end = tmp_rec.t;
                 *rec = tmp_rec;
             }
         }
