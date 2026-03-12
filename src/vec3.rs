@@ -1,6 +1,8 @@
 use std::ops::{Add, AddAssign, Sub, SubAssign, Neg, Mul, MulAssign, Index, IndexMut, Div, RangeInclusive};
 use rand::Rng;
 
+use crate::vec3;
+
 // TODO: template?
 #[derive(PartialEq, Debug, Copy, Clone, Default)]
 pub struct Vec3 {
@@ -42,6 +44,10 @@ impl Vec3 {
         self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2] 
     }
 
+    pub fn near_zero(&self) -> bool {
+        let s = 1e-8;
+        (f64::abs(self.e[0]) < s) && (f64::abs(self.e[1]) < s) && (f64::abs(self.e[2]) < s)
+    }
 
 }
 
@@ -78,6 +84,16 @@ impl Sub for Vec3 {
     }
 }
 
+impl Sub<&Vec3> for &Vec3 {
+    type Output = Vec3;
+    
+    fn sub(self, rhs: &Vec3) -> Vec3 {
+        Vec3::from_array([self.e[0] - rhs.e[0],
+                self.e[1] - rhs.e[1],
+                self.e[2] - rhs.e[2]])
+    }
+}
+
 // NOTE: autogeneration of traits impl: pretty convenint
 macro_rules! impl_op {
     ($trait:ident, $method:ident) => {
@@ -106,6 +122,15 @@ impl Mul<f64> for Vec3 {
     fn mul(self, t: f64) -> Self::Output {
         Self {
             e: [self.e[0] * t, self.e[1] * t, self.e[2] * t]
+        }
+    }
+}
+
+impl Mul<Vec3> for Vec3 {
+    type Output = Self;
+    fn mul(self, t: Vec3) -> Self::Output {
+        Self {
+            e: [self.e[0] * t.e[0], self.e[1] * t.e[1], self.e[2] * t.e[2]]
         }
     }
 }
@@ -202,6 +227,10 @@ fn random_on_hemisphere(normal:&Vec3) -> Vec3 {
     let mut p = random_unit_vector();
     let res = if dot(normal, &p) > 0.0 { p } else { *-(&mut p) };
     res
+}
+
+pub fn reflect(v:&Vec3, n:&Vec3) -> Vec3 {
+    return *v - 2.0 * (dot(v,n)*n); //TODO: weird with traits
 }
 
 //-----------------------------------------------------------------------------

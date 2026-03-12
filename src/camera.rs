@@ -1,8 +1,9 @@
 use std::io::stdout;
 use rand::Rng;
 
-use crate::{color::{Color, write_color}, hitable::{HitRecord, Hitable}, ray::Ray, 
+use crate::{color::{write_color}, hitable::{HitRecord, Hitable}, ray::Ray, 
             vec3::{Point3, Vec3, random_unit_vector, unit_vector}};
+use crate::color::Color;
 
 
 #[derive(Debug, Default)]
@@ -77,11 +78,14 @@ impl Camera {
         if rec_level >= self.max_rec_level {
             Color::from_value(0.0,0.0,0.0);
         }
-        let mut hit_rec = HitRecord::default(); 
+        let mut hit_rec = HitRecord::new(); 
         if world.hit(r, &(0.001..f64::INFINITY), &mut hit_rec) {
-            let direction = hit_rec.normal + random_unit_vector();
-            return 0.7 * self.ray_color(rec_level+1 , &Ray::from_vec(hit_rec.p, direction), world);
-            // return (hit_rec.normal + Color::from_value(1.0,1.0,1.0)) * 0.5;
+            let mut scattered = Ray::new();
+            let mut attenuation = Color::new();
+            if hit_rec.mat.scatter(r, &hit_rec.clone(), &mut attenuation, &mut scattered) {
+                return self.ray_color(rec_level + 1, &scattered, world) * attenuation;
+            }
+            return Color::from_value(0.0,0.0,0.0);
         }
         let unit_direction = unit_vector(&r.direction());
         let  a = 0.5*(unit_direction.y() + 1.0);
