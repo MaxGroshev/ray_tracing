@@ -1,4 +1,5 @@
-use std::ops::{Add, AddAssign, Sub, SubAssign, Neg, Mul, MulAssign, Index, IndexMut, Div};
+use std::ops::{Add, AddAssign, Sub, SubAssign, Neg, Mul, MulAssign, Index, IndexMut, Div, RangeInclusive};
+use rand::Rng;
 
 // TODO: template?
 #[derive(PartialEq, Debug, Copy, Clone, Default)]
@@ -109,6 +110,31 @@ impl Mul<f64> for Vec3 {
     }
 }
 
+impl Mul<Vec3> for f64 {
+    type Output = Vec3;
+    
+    fn mul(self, rhs: Vec3) -> Vec3 {
+        Vec3::from_value(
+            self * rhs.x(),
+            self * rhs.y(),
+            self * rhs.z(),
+        )
+    }
+}
+
+impl Mul<&Vec3> for f64 {
+    type Output = Vec3;
+    
+    fn mul(self, rhs: &Vec3) -> Vec3 {
+        Vec3::from_value(
+            self * rhs.x(),
+            self * rhs.y(),
+            self * rhs.z(),
+        )
+    }
+}
+
+
 impl Mul<f64> for &Vec3 {
     type Output = Vec3;
     fn mul(self, t: f64) -> Self::Output {
@@ -151,10 +177,33 @@ impl IndexMut<usize> for Vec3 {
     }
 }
 
-
 pub fn unit_vector(v: &Vec3) -> Vec3{
     return v / v.length();
 }
+
+fn random(interval:RangeInclusive<f64>) -> Vec3 {
+    let mut rng = rand::thread_rng();
+    Vec3::from_value(rng.gen_range(interval.clone()),
+                        rng.gen_range(interval.clone()),
+                        rng.gen_range(interval))
+}
+
+pub fn random_unit_vector() -> Vec3 {
+    loop {
+        let p = random(-1.0..=1.0);
+        let lensq = p.squared_length();
+        if 1e-160 < lensq && lensq <= 1.0 {
+            return p / f64::sqrt(lensq);
+        }
+    }
+}
+
+fn random_on_hemisphere(normal:&Vec3) -> Vec3 {
+    let mut p = random_unit_vector();
+    let res = if dot(normal, &p) > 0.0 { p } else { *-(&mut p) };
+    res
+}
+
 //-----------------------------------------------------------------------------
 
 #[cfg(test)]
